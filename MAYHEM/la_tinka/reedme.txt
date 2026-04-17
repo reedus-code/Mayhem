@@ -1,0 +1,17 @@
+--------------
+[la_tinka.exe] Descarga registros de las jugadas almacenadas en https://www.latinka.com.pe/p/juega-tinka.html
+--------------
+
+¡IMPORTANTE ESTAR CONECTADO A UNA RED PARA DESCARGAR LOS ARCHIVOS!
+Los registros se almacenan en un archivo de tipo tabla de datos [la_tinka.csv]
+
+	- Si deseas actualizar el registro de la tinka, 
+	  borra el archivo [la_tinka.csv]
+
+----------------------------------------------------------
+En la carpera <backup_041426> 
+se encuentra un archivo respaldo de las jugadas realizadas
+hasta la fecha 04/14/26
+----------------------------------------------------------
+
+PROX ACTUALIZACIONES - ANÁLISIS MUESTRA...
