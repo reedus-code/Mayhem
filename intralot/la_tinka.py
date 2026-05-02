@@ -2,23 +2,23 @@ from requests_html import HTMLSession
 from bs4 import BeautifulSoup
 import pandas as pd
 from pathlib import Path
-import readchar
+# import readchar
 
 
 error_code = []
 tinka_url = 'https://resultados.latinka.com.pe/i.do?m=historico&t=0&s=41'
 data_tinka = {'id_tinka': [],
               'date': [],
-              'lucky_numbers': [],
-              'check' : [],
+              'tnk_numb': [],
+              'yapa': [],
+              'sio_si': [],
               'b_one' : [],
               'b_two' : [],
               'b_three' : [],
               'b_four' : [],
               'b_five' : [],
               'b_six' : [],
-              'yapa': [],
-              'sio_si': []}
+              'tnk_0-9' : [],}
 
 
 def get_data (url):
@@ -36,7 +36,7 @@ def get_data (url):
         sorteo_text = contents[1].get_text(strip=True)
         data_tinka['id_tinka'].append(sorteo_text)
         bolillas_text = contents[2].get_text(strip=True)
-        data_tinka['lucky_numbers'].append(bolillas_text)
+        data_tinka['tnk_numb'].append(bolillas_text)
         yapa_text = contents[3].get_text(strip=True)
         data_tinka['yapa'].append(yapa_text)
         suerte_text = contents[4].get_text(strip=True)
@@ -45,26 +45,36 @@ def get_data (url):
 
 
 def show_info_tinka(df):
+    print(f'\nNúmero de jugadas registradas (latinka.com.pe): {df.shape[0]}\n\n')
     print(df.head())
     #print(df.info())
-    df_repeat_numb = df[df['check'].duplicated()]
-    duplicate_list = [df[ticket == df['check']] for ticket in df_repeat_numb['check']]
+    df_repeat_numb = df[df['tnk_0-9'].duplicated()]
+    duplicate_list = [df[ticket == df['tnk_0-9']] for ticket in df_repeat_numb['tnk_0-9']]
     print('\n\x1b[3m\x1b[31mLista jugadas repetidas\x1b[0m\n')
     for item in duplicate_list:
-        print(item)
-    print('\n\x1b[3m\x1b[33m[PRESS ANY KEY TO CONTINUE]\x1b[0m')
-    readchar.readchar()
+        print(item.iloc[0:,0:2])
+        print('-'*44)
+#    print('\n\x1b[3m\x1b[33m[PRESS ANY KEY TO CONTINUE]\x1b[0m')
+#    readchar.readchar()
+
+
+def data_cleaning(df):
+    # Fix: datetime
+    df['date'] = pd.to_datetime(df['date'], dayfirst=True)
+    # Fix index
+    df.set_index('date')
+    df.drop('id_tinka', axis = 1, inplace = True)
+     # Fix: zero data
+    df.loc[df['yapa'] == '', 'yapa'] = '0'
+    df['yapa'] =  df['yapa'].apply(int)
+    return df
 
 
 def save_as_cvs(variable):
     df = pd.DataFrame(variable)
-
-    df.loc[df['yapa'] == '', 'yapa'] = '0'
-    df['yapa'] =  df['yapa'].apply(int)
-    df['date'] = pd.to_datetime(df['date'], dayfirst=True)
-
-    csv_path = Path('la_tinka.csv')
-    df.to_csv(csv_path, index=False)
+    df = data_cleaning(df)
+    csv_path = Path('intralot/la_tinka.csv')
+    df.to_csv(csv_path, index = False)
     print('\x1b[3m\x1b[31m[ARCHIVO GUARDADO]\x1b[0m\n'
           '\x1b[43mla_tinka.csv\x1b[0m\n\n')
     show_info_tinka(df)
@@ -72,7 +82,7 @@ def save_as_cvs(variable):
 
 def check_csv():
     try:
-        csv_path = Path('la_tinka.csv')
+        csv_path = Path('intralot/la_tinka.csv')
         df = pd.read_csv(csv_path)
         show_info_tinka(df)
         exit()
@@ -95,8 +105,8 @@ def check_data (error):
 
 def tinka_legacy(data):
     data['sio_si'] = [item.replace(' ', ' - ') for item in data['sio_si']]
-    data['lucky_numbers'] = [item.replace(' ', ' - ') for item in data['lucky_numbers']]
-    for item in data['lucky_numbers']:
+    data['tnk_numb'] = [item.replace(' ', ' - ') for item in data['tnk_numb']]
+    for item in data['tnk_numb']:
         set_to_numb = item.split(' - ')
         data['b_one'].append(int(set_to_numb[0]))
         data['b_two'].append(int(set_to_numb[1]))
@@ -105,7 +115,7 @@ def tinka_legacy(data):
         data['b_five'].append(int(set_to_numb[4]))
         data['b_six'].append(int(set_to_numb[5]))
 
-        data['check'].append(', '.join(sorted(set_to_numb)))
+        data['tnk_0-9'].append(', '.join(sorted(set_to_numb)))
 
     return data
 
